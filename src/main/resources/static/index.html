@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RankRush - Live Leaderboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/vue@2.6.14/dist/vue.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        #app {
+            width: 80%;
+            max-width: 1000px;
+        }
+        h1 {
+            text-align: center;
+            color: #ffffff;
+            margin-bottom: 2rem;
+        }
+        .simulation-controls {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        button {
+            background-color: #1e88e5;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #1565c0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background-color: #1e1e1e;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+        thead {
+            background-color: #2c2c2c;
+        }
+        th {
+            color: #ffffff;
+        }
+        tbody tr:nth-child(even) {
+            background-color: #242424;
+        }
+        tbody tr:hover {
+            background-color: #333333;
+        }
+        .rank {
+            font-weight: bold;
+            color: #1e88e5;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <h1>RankRush Live Leaderboard</h1>
+    <div class="simulation-controls">
+        <button @click="startSimulation">Start Simulation</button>
+    </div>
+    <table>
+        <thead>
+        <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Name</th>
+            <th>Location</th>
+            <th>Points</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr v-for="(user, index) in leaderboard" :key="user.userName">
+            <td class="rank">{{ index + 1 }}</td>
+            <td>{{ user.userName }}</td>
+            <td>{{ user.name }}</td>
+            <td>{{ user.location }}</td>
+            <td>{{ user.points.toFixed(2) }}</td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+
+<script>
+    new Vue({
+        el: '#app',
+        data: {
+            leaderboard: [],
+            eventSource: null
+        },
+        methods: {
+            startSimulation() {
+                fetch('/simulation/start', { method: 'POST' })
+                    .then(() => console.log('Simulation started'));
+            },
+            connect() {
+                this.eventSource = new EventSource('/leaderboard');
+                this.eventSource.onmessage = (event) => {
+                    const user = JSON.parse(event.data);
+                    const index = this.leaderboard.findIndex(u => u.userName === user.userName);
+                    if (index !== -1) {
+                        this.$set(this.leaderboard, index, user);
+                    } else {
+                        this.leaderboard.push(user);
+                    }
+
+                    this.leaderboard.sort((a, b) => b.points - a.points);
+                    if (this.leaderboard.length > 50) {
+                        this.leaderboard.length = 50;
+                    }
+                };
+                 this.eventSource.onerror = (error) => {
+                    console.error('EventSource failed:', error);
+                    this.eventSource.close();
+                };
+            }
+        },
+        mounted() {
+            this.connect();
+        }
+    });
+</script>
+</body>
+</html>

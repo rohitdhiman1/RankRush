@@ -11,3 +11,12 @@ Mercury.modules
 *.beams
 *.d
 *.c_date
+
+
+.vscode/
+.idea/
+*.iml
+
+.DS_Store
+
+target/
