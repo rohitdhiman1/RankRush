@@ -17,7 +17,8 @@
         h1 {
             text-align: center;
             color: #ffffff;
-            margin-bottom: 2rem;
+            margin-top: 0.5rem;
+            margin-bottom: 1.2rem;
             font-size: 2.2rem;
             font-weight: 700;
         }
@@ -27,33 +28,36 @@
         }
         .container {
             display: flex;
-            gap: 2.5rem;
-            align-items: stretch;
+            flex-direction: column;
+            gap: 1.5rem;
+            align-items: center;
             flex-wrap: wrap;
         }
         .left-panel {
-            flex: 1 1 340px;
+            width: 100%;
             background-color: #1e1e1e;
-            padding: 2.2rem 2.5rem;
+            padding: 0.2rem 0.5rem;
             border-radius: 16px;
             box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-            min-width: 320px;
-            max-width: 400px;
+            min-width: 600px;
+            max-width: 1100px;
             display: flex;
-            flex-direction: column;
+            flex-direction: row;
             justify-content: center;
-            align-items: flex-end;
+            align-items: center;
         }
         .right-panel {
-            flex: 2 1 600px;
+            flex: 5 1 1200px;
             background-color: #1e1e1e;
-            padding: 2.2rem 2.5rem;
+            padding: 1.2rem 1.5rem;
             border-radius: 16px;
             box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-            min-width: 340px;
+            min-width: 1100px;
+            max-height: 440px;
+            height: 440px;
             display: flex;
             flex-direction: column;
-            justify-content: center;
+            justify-content: flex-start;
             align-items: center;
         }
         @media (max-width: 900px) {
@@ -69,12 +73,12 @@
         }
         input, select {
             width: 100%;
-            padding: 10px 12px;
+            padding: 6px 8px;
             background-color: #2c2c2c;
             border: 1px solid #444;
-            border-radius: 6px;
+            border-radius: 5px;
             color: #e0e0e0;
-            font-size: 1rem;
+            font-size: 0.95rem;
             box-sizing: border-box;
         }
         input:invalid {
@@ -102,15 +106,19 @@
             background: linear-gradient(90deg, #1565c0 60%, #21cbf3 100%);
         }
         .result {
-            margin-bottom: 2rem;
+            margin-bottom: 0;
+            margin-top: 0.1rem;
             text-align: center;
-            font-size: 1.2rem;
+            font-size: 1rem;
         }
         #chart-container {
             margin-top: 1rem;
             height: 320px;
             width: 100%;
-            max-width: 700px;
+            max-width: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
     </style>
 </head>
@@ -119,29 +127,29 @@
     <h1>Compounding Calculator</h1>
     <div class="container">
         <div class="left-panel">
-            <form style="width: 100%; display: flex; flex-direction: column; gap: 0;" @submit.prevent="calculate">
-                <!-- Calculation type removed -->
-                <div class="form-group">
+            <form style="width: 100%; display: flex; flex-direction: row; gap: 1.2rem; align-items: flex-end; justify-content: center;" @submit.prevent="calculate">
+                <div class="form-group" style="min-width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <label for="principal">Initial Amount ($)</label>
                     <input type="text" id="principal" v-model="principalFormatted" @input="onPrincipalInput" required pattern="^\d{1,3}(,\d{3})*(\.\d+)?$" title="Enter a valid amount">
                     <div v-if="errors.principal" class="error">{{ errors.principal }}</div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="min-width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <label for="returnRate">Annual Return (%)</label>
                     <input type="number" id="returnRate" v-model.number="returnRate" min="0.01" step="0.01" required>
                     <div v-if="errors.returnRate" class="error">{{ errors.returnRate }}</div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="min-width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <label for="duration">Duration (Years)</label>
                     <input type="number" id="duration" v-model.number="duration" min="1" required>
                     <div v-if="errors.duration" class="error">{{ errors.duration }}</div>
                 </div>
-                <div class="form-group">
+                <div class="form-group" style="min-width: 120px; display: flex; flex-direction: column; justify-content: center; align-items: center;">
                     <label for="addOnAmount">Annual Add-on ($)</label>
                     <input type="text" id="addOnAmount" v-model="addOnAmountFormatted" @input="onAddOnInput" pattern="^\d{1,3}(,\d{3})*(\.\d+)?$" title="Enter a valid amount">
                 </div>
-                <!-- Trust beneficiary input removed -->
-                <button type="submit">Calculate</button>
+                <div style="display: flex; align-items: center; justify-content: center; height: 100%;">
+                    <button type="submit" style="height: 32px; min-width: 120px; font-size: 0.95rem; display: flex; align-items: center; justify-content: center;">Calculate</button>
+                </div>
             </form>
         </div>
         <div class="right-panel">
@@ -149,7 +157,7 @@
                 <h2>Final Amount: {{ formatCurrency(finalAmount) }}</h2>
             </div>
             <div id="chart-container">
-                <canvas id="growthChart"></canvas>
+                <canvas id="growthChart" width="1300" height="500" style="width:100%;height:100%;max-width:100%;max-height:100%;display:block;margin:0 auto;"></canvas>
             </div>
         </div>
     </div>
@@ -194,11 +202,11 @@
             },
             validateInputs() {
                 this.errors = {};
-                if (!this.principal || this.principal < 1) {
-                    this.errors.principal = 'Initial amount must be at least $1.';
+                if (this.principal == null || this.principal < 1) {
+                    this.errors.principal = 'Initial amount must be at least $1 and cannot be zero.';
                 }
                 if (!this.returnRate || this.returnRate <= 0) {
-                    this.errors.returnRate = 'Annual rate must be greater than 0.';
+                    this.errors.returnRate = 'Annual return must be greater than 0.';
                 }
                 if (!this.duration || this.duration < 1) {
                     this.errors.duration = 'Duration must be at least 1 year.';
@@ -211,30 +219,34 @@
                     if (this.chart) this.chart.destroy();
                     return;
                 }
-                let amount = this.principal;
+                let principal = this.principal;
                 const rate = this.returnRate / 100;
                 const addOn = this.addOnAmount || 0;
-                const yearlyData = [];
+                let total = principal;
                 const labels = [];
-                yearlyData.push(amount);
+                const principalData = [principal];
+                const interestData = [0];
                 labels.push('Year 0');
                 for (let i = 1; i <= this.duration; i++) {
-                    amount = amount * (1 + rate) + addOn;
-                    yearlyData.push(amount);
+                    let prevTotal = total;
+                    total = total * (1 + rate) + addOn;
+                    principal += addOn;
+                    principalData.push(principal);
+                    interestData.push(total - principal);
                     labels.push(`Year ${i}`);
                 }
-                this.finalAmount = amount;
-                this.drawChart(labels, yearlyData);
+                this.finalAmount = total;
+                this.drawChart(labels, principalData, interestData);
             },
-            drawChart(labels, data) {
+            drawChart(labels, principalData, interestData) {
                 const ctx = document.getElementById('growthChart').getContext('2d');
                 if (this.chart) {
                     this.chart.destroy();
                 }
-                const initialAmount = data[0];
-                const finalAmount = data[data.length - 1];
-                let minY = initialAmount;
-                let range = finalAmount - initialAmount;
+                const initialAmount = principalData[0];
+                const finalAmount = principalData[principalData.length - 1] + interestData[interestData.length - 1];
+                let minY = 0;
+                let range = finalAmount;
                 let stepSize = 500;
                 if (range > 5000) stepSize = 1000;
                 if (range > 10000) stepSize = 2000;
@@ -242,19 +254,23 @@
                 if (range > 50000) stepSize = 10000;
                 let maxY = Math.ceil(finalAmount / stepSize) * stepSize;
                 this.chart = new Chart(ctx, {
-                    type: 'line',
+                    type: 'bar',
                     data: {
                         labels: labels,
-                        datasets: [{
-                            label: 'Investment Growth ($)',
-                            data: data,
-                            backgroundColor: 'rgba(30, 136, 229, 0.2)',
-                            borderColor: '#1e88e5',
-                            borderWidth: 3,
-                            pointBackgroundColor: '#ffffff',
-                            pointRadius: 4,
-                            tension: 0.4
-                        }]
+                        datasets: [
+                            {
+                                label: 'Principal ($)',
+                                data: principalData,
+                                backgroundColor: 'rgba(33, 150, 243, 0.7)',
+                                stack: 'Stack 0',
+                            },
+                            {
+                                label: 'Compounded Interest ($)',
+                                data: interestData,
+                                backgroundColor: 'rgba(76, 175, 80, 0.7)',
+                                stack: 'Stack 0',
+                            }
+                        ]
                     },
                     options: {
                         responsive: true,
@@ -263,6 +279,7 @@
                             y: {
                                 min: minY,
                                 max: maxY,
+                                stacked: true,
                                 ticks: {
                                     stepSize: stepSize,
                                     color: '#e0e0e0',
@@ -275,6 +292,7 @@
                                 }
                             },
                             x: {
+                                stacked: true,
                                 ticks: {
                                     color: '#e0e0e0',
                                     autoSkip: false,
